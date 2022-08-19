@@ -1,6 +1,10 @@
 (async function(){
-    const produitId = getproduitId()
-    const produitInfos = getproduitInfos(produitId)
-    produitPublication(produitInfos)
+    const productId = getProductId()
+    const productInfos = getProductInfos(productId)
+    produitPublication(productInfos)
 
 })()
+
+function getProductId(){
+    
+}
