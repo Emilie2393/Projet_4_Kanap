@@ -1,6 +1,5 @@
 
-let items = document.getElementById('items');
-
+// finales functions returns on Kanap 
 
 finalProducts()
 
@@ -12,6 +11,7 @@ async function finalProducts() {
     }
 }
 
+// fetch API informations
 
 function getProducts(){
     return fetch('http://localhost:3000/api/products')
@@ -21,23 +21,16 @@ function getProducts(){
         console.log('problème avec fetch :' + error.message);
     })}
     
-
-
-// fetch('http://localhost:3000/api/products')
-//     .then(res => res.json())
-//     .then(canapes => {console.log(canapes)
-    // for(canape of canapes){
-
-    //     publishProducts(canape);
-    // }
-
+// function for append Child used in the next function
 
 function child(valeur1,valeur2){
     valeur1.appendChild(valeur2);
 }
 
+// complete HTML with corresponding informations - canape definition is on the 1st function
 
 function publishProducts(canape){
+    let items = document.getElementById('items');
     const a = document.createElement('a');
     child(items, a);
     a.textContent = canape._id;
