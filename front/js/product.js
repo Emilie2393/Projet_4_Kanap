@@ -6,9 +6,9 @@
     const productInfos = await getProductInfos(productId)
     console.log(productInfos)
     productPublication(productInfos)
+    saveItems(productInfos)
 
 })()
-
 
 // get Id URL from welcome page
 
@@ -33,8 +33,7 @@ function colorChoice (productInfos){
         const colorOption = document.createElement('option');
         const optionValue = document.querySelector('#colors').appendChild(colorOption);
         colorOption.setAttribute('value', productInfos.colors[i]);
-        colorOption.textContent = productInfos.colors[i];
-        console.log(colorOption.textContent)   
+        colorOption.textContent = productInfos.colors[i];   
 }
 }
 
@@ -58,7 +57,54 @@ function productPublication(productInfos){
     colorChoice(productInfos);
     
     }
+
+// select options, save them into the finale object and put them into local storage  
+
+function saveItems(productInfos){
     
+    const valideButton = document.querySelector('#addToCart').addEventListener('click', function(event){
+        event.preventDefault();
+        const colorSelect = document.querySelector('#colors');
+        const colorSave = colorSelect.value;
+    
+        const quantitySelect = document.querySelector('#quantity');
+        const quantitySave = quantitySelect.value;
+
+        let itemsObject = {
+            reference : productInfos._id,
+            quantite : Number(quantitySave),
+            couleur : colorSave,
+        }
+
+        function saveBasket(storage){
+            localStorage.setItem('product', JSON.stringify(storage));
+        }
+
+        let storage = JSON.parse(localStorage.getItem('product'));
+        // if storage is empty
+        if (storage == null){
+            let storage = [];
+            storage.push(itemsObject);
+            saveBasket(storage);
+        }
+        // if storage has already an item 
+        else{
+            if (storage[0].reference == itemsObject.reference && storage[0].couleur == itemsObject.couleur){
+                storage[0].quantite += itemsObject.quantite;
+                saveBasket(storage);
+                console.log(storage)
+                }
+                else {
+                storage.push(itemsObject);
+                console.log(storage)
+                saveBasket(storage);
+                }
+            }  
+        })
+    }
+
+
+  
 
 
 
