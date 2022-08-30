@@ -25,12 +25,14 @@ function getItem(local){
 for (let i=0; i < local.length; i++) {
 
     let productId = local[i].reference;
+    let productQuantity = local[i].quantite;
+    console.log(productQuantity)
     
     
     fetch("http://localhost:3000/api/products/" + productId)
     .then(res => res.json())
     .then(canape => {
-        item.innerHTML = item.innerHTML + `<article class="cart__item" data-id=${productId} data-color=${local[i].couleur}>
+        item.innerHTML = item.innerHTML + `<article class="cart__item" data-id="${productId}" data-color="${local[i].couleur}">
         <div class="cart__item__img">
             <img src=${canape.imageUrl} alt=${canape.altTxt}>
         </div>
@@ -43,7 +45,7 @@ for (let i=0; i < local.length; i++) {
             <div class="cart__item__content__settings">
                 <div class="cart__item__content__settings__quantity">
                     <p>Qté : </p>
-                    <input type="number" class="itemQuantity" name="itemQuantity" min="1" max="100" value=${local[i].quantite}>
+                    <input type="number" class="itemQuantity" name="itemQuantity" min="1" max="100" value=${productQuantity}>
                 </div>
             <div class="cart__item__content__settings__delete">
                 <p class="deleteItem">Supprimer</p>
@@ -53,6 +55,9 @@ for (let i=0; i < local.length; i++) {
     </article>`
     
     deleteIt(local);
+    quantityUpdate(local);
+
+
 
     })
     .catch(function(error){
@@ -84,3 +89,29 @@ function deleteIt(local){
             }
             )}
     }
+
+
+    function quantityUpdate(local){
+        console.log('coucou')
+        const quantityChange = document.querySelectorAll('.itemQuantity');
+        for (let clic of quantityChange){
+            clic.addEventListener('change', function(event){
+                let clicProduct = clic.closest('article');
+                event.preventDefault();
+                const clicId = clicProduct.dataset.id;
+                const clicColor = clicProduct.dataset.color;
+                console.log(clic.value)
+
+                for (i=0; i < local.length; i++){
+                    if(local[i].reference == clicId && local[i].couleur == clicColor){
+                        return (
+                            local[i].quantite = clic.value,
+                            localStorage.setItem('product', JSON.stringify(local)),
+                            console.log('nouveau local:', local[i].quantite))
+                    }
+                }
+            })
+        }
+        
+    }
+
