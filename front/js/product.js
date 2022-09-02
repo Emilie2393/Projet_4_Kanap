@@ -94,10 +94,10 @@ function saveItems(productInfos){
                 saveBasket(storage);
                 console.log(storage)
                 }
-                else {
+            else {
                 storage.push(itemsObject);
-                console.log(storage)
                 saveBasket(storage);
+                console.log(storage)
                 }
             }  
         })
