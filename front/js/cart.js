@@ -1,9 +1,4 @@
-// 1 - Affiche tes produits avec leur prix récupérer depuis l'API
-// 2 - Une fois afficher tu met à jour le prix total
-// 3 - Créer une fonction Modifier
-// 4 - Créer une fonction Supprimer
-// 3 - Bind les boutons modifier
-// 4 - Bind les boutons supprimer
+
 
 (async function () {
 
@@ -66,19 +61,9 @@ async function getItem(local) {
     </article>`
 
 
-                //deleteIt();
-                //quantityUpdate();
-
                 // get each unit price in an array { 'ProductId' : 1000 }
                 
-                productPriceArray.push({ 'prix': canape.price, 'identifiant': productId, 'couleur': local[i].couleur });
-                
-
-                
-                // [10, 432423424]
-                //
-                // get each unit quantity un an array //
-                //quantityArray.push(Number(local[i].quantite));
+                productPriceArray.push({ 'price': canape.price, 'identifier': productId, 'color': local[i].couleur });
 
 
 
@@ -91,12 +76,10 @@ async function getItem(local) {
 
 
 
-// get an array of each prices and quantity per product at the end of the HTML publication //
+// array of objects 'price' matching 'identifier'
 
 var productPriceArray = [];
 console.log(productPriceArray)
-
-//const quantityArray = [];
 
 
 // get total quantity and prices before order //
@@ -106,30 +89,26 @@ function total() {
     const totalQuantity = document.querySelector('#totalQuantity');
     const totalPrice = document.querySelector('#totalPrice');
 
-
     let total = 0;
     let totalQuant = 0;
     const local = getLocal();
     
-
     for (i = 0; i < local.length; i++) {
-        console.log("test",productPriceArray[i].prix)
-        total = total + (productPriceArray[i].prix * local[i].quantite);
+        total = total + (productPriceArray[i].price * local[i].quantite);
         totalQuant += Number(local[i].quantite);
         }
-    
-
 
     // show quantity total and prices total if there is any changes on the page //
     totalPrice.textContent = total;
     totalQuantity.textContent = totalQuant;
-    console.log("fonction totale local", local)
 }
 
-function GetPriceFromProductPriceArray(identifiant) {
+// get only price from productPriceArray
+
+function getPriceFromProductPriceArray(identifiant) {
     for (i = 0; i < productPriceArray.length; i++) {
-        if (productPriceArray[i].identifiant == identifiant) {
-            return productPriceArray[i].prix
+        if (productPriceArray[i].identifier == identifiant) {
+            return productPriceArray[i].price
         }
     }
 }
@@ -148,14 +127,15 @@ function quantityUpdate(event) {
             local[i].quantite = Number(event.target.value);
             console.log('nouvelle quantite local storage:', local[i].quantite);
             // update price on quantity change //
-            newPrice[0].textContent = (local[i].quantite * GetPriceFromProductPriceArray(local[i].reference)) + " €";
+            newPrice[0].textContent = (local[i].quantite * getPriceFromProductPriceArray(local[i].reference)) + " €";
             localStorage.setItem('product', JSON.stringify(local));
             total();
         }
     }
 }
 
-// 
+// bind quantity change to quantityUpdate function 
+
 function bindQuantityButton() {
     const quantityChange = document.querySelectorAll('.itemQuantity');
     for (let clic of quantityChange) {
@@ -163,13 +143,13 @@ function bindQuantityButton() {
     }
 }
 
+// bind delete click to deleteIt function
 
 function bindDeleteButton() {
     const deleteItem = document.querySelectorAll('.deleteItem');
 
     for (let product of deleteItem) {
         product.addEventListener('click', deleteIt)
-
     }
 }
 
@@ -187,15 +167,104 @@ function deleteIt(event) {
             localStorage.setItem('product', JSON.stringify(local));
             deleteProduct.remove();
 
-            productPriceArray = productPriceArray.filter((product) => product.identifiant !== deleteId || product.couleur !== deleteColor)
+            // update list to get the right calculation
+            productPriceArray = productPriceArray.filter((product) => product.identifier !== deleteId || product.color !== deleteColor)
             console.log("delete", productPriceArray)
             total();
-            
-            console.log("local", local)
+
+            // clear localStorage if all items are deleted
+            if (local.length == 0){
+                localStorage.clear();
+            }
             
         }
 
+// get form informations from HTML 
 
+// Listen click on submit button
+function bindSubmitButton(){
+    const submitForm = document.querySelector('#order');
+    submitForm.addEventListener('click', formInformations)
+}
+
+bindSubmitButton()
+
+// create contact object from each input and save them into local Storage
+function formInformations(event) {
+
+    event.preventDefault();
+    let form = document.querySelector('.cart__order__form');
+
+    const contact = {
+        firstName: form.firstName.value,
+        lastName: form.lastName.value,
+        address: form.address.value,
+        city: form.city.value,
+        email: form.email.value
+    }
+
+    let client = localStorage.setItem("client", JSON.stringify(contact));
+    console.log(JSON.parse(localStorage.getItem('client')));
+
+}
+
+// listen each change on differents inputs
+firstName.addEventListener('change', function () {
+    nameCheck(firstName);
+})
+lastName.addEventListener('change', function () {
+    nameCheck(lastName);
+})
+city.addEventListener('change', function () {
+    nameCheck(city);
+})
+address.addEventListener('change', function () {
+    adressCheck(address);
+})
+email.addEventListener('change', function () {
+    mailCheck(email);
+})
+
+// controle data with regex and choose the right message 
+function nameCheck(formInput) {
+
+    let nameControl = new RegExp('^[a-z(A-Z\-\\s+)?]+$');
+    let nameTest = nameControl.test(formInput.value);
+    let errorMessage = formInput.nextElementSibling;
+
+    if (nameTest == false){
+        errorMessage.innerHTML = 'Champ invalide : caractères spéciaux et chiffres interdits';
+    }
+    else{
+        errorMessage.innerHTML = " ";
+    }
+}
+
+function adressCheck(formInput) {
+    let adressControl = new RegExp('^[a-z(A-Z0-9\\s+)?]+$')
+    let adressTest = adressControl.test(formInput.value);
+    let errorMessage = formInput.nextElementSibling;
+
+    if (adressTest == false){
+        errorMessage.innerHTML = 'Champ invalide : caractères spéciaux interdits';
+    }
+    else{
+        errorMessage.innerHTML = " ";
+    }
+}
+
+function mailCheck(formInput) {
+    let mailControl = new RegExp('^[a-zA-Z0-9\-._]+[@]{1}[a-zA-Z0-9\-._]+[.]{1}[a-z]{2,10}$', 'g')
+    let mailTest = mailControl.test(formInput.value);
+    let errorMessage = formInput.nextElementSibling;
+
+    if (mailTest == false){
+        errorMessage.innerHTML = 'Champ invalide : format email requis';
+    }
+    else{
+        errorMessage.innerHTML = " ";
+    }
+}
 
 
 
