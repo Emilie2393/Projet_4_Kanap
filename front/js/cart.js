@@ -116,7 +116,7 @@ function getPriceFromProductPriceArray(identifiant) {
 // save quantity update into local storage //
 
 function quantityUpdate(event) {
-    const local = getLocal();
+    let local = getLocal();
     let clicProduct = event.target.closest('article');
     const clicId = clicProduct.dataset.id;
     const clicColor = clicProduct.dataset.color;
@@ -181,19 +181,30 @@ function deleteIt(event) {
 
 // get form informations from HTML 
 
+let form = document.querySelector('.cart__order__form');
+const submitForm = document.querySelector('#order');
+
 // Listen click on submit button
 function bindSubmitButton(){
-    const submitForm = document.querySelector('#order');
     submitForm.addEventListener('click', formInformations)
 }
 
 bindSubmitButton()
 
+// create an array of product-ID
+let products = [];
+console.log("id", products)
+function getIdFromLocal(){
+    let local = getLocal();
+    for(let product of local){
+        products.push(product.reference)
+    }
+}
+getIdFromLocal()
+
 // create contact object from each input and save them into local Storage
 function formInformations(event) {
 
-    event.preventDefault();
-    let form = document.querySelector('.cart__order__form');
 
     const contact = {
         firstName: form.firstName.value,
@@ -203,9 +214,46 @@ function formInformations(event) {
         email: form.email.value
     }
 
-    let client = localStorage.setItem("client", JSON.stringify(contact));
-    console.log(JSON.parse(localStorage.getItem('client')));
+    if (contact.firstName == "" || contact.lastName == "" || contact.address == "" || contact.city == "" || contact.email == "") {
+        
+    }
+    else {
+        event.preventDefault();
+        submitForm.removeAttribute('disabled', 'disabled');
 
+        let contactJson = localStorage.setItem("contact", JSON.stringify(contact));
+        let contactScript = JSON.parse(localStorage.getItem('contact'));
+
+        const toSend = {
+            contact,
+            products
+        };
+        console.log("send", toSend)
+
+        postInformations(toSend)
+        
+    }
+
+}
+
+
+async function postInformations(infos){
+    console.log(JSON.stringify(infos))
+    await fetch("http://localhost:3000/api/products/order", {
+        method: "POST",
+        body: JSON.stringify(infos),
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+                }
+    })
+    .then(res => res.json()) 
+    .then(order => {
+        console.log(order.orderId);
+        window.location.href = `./confirmation.html?commande=${order.orderId}`;
+
+    })
+    
 }
 
 // listen each change on differents inputs
@@ -226,30 +274,37 @@ email.addEventListener('change', function () {
 })
 
 // controle data with regex and choose the right message 
+
+
 function nameCheck(formInput) {
 
-    let nameControl = new RegExp('^[a-z(A-Z\-\\s+)?]+$');
+    let nameControl = new RegExp('^[a-zéèìïã(A-Z\-\\s+)?]+$');
     let nameTest = nameControl.test(formInput.value);
     let errorMessage = formInput.nextElementSibling;
 
     if (nameTest == false){
         errorMessage.innerHTML = 'Champ invalide : caractères spéciaux et chiffres interdits';
+        submitForm.setAttribute('disabled', 'disabled');
     }
     else{
         errorMessage.innerHTML = " ";
+        submitForm.removeAttribute('disabled', 'disabled');
     }
 }
 
 function adressCheck(formInput) {
-    let adressControl = new RegExp('^[a-z(A-Z0-9\\s+)?]+$')
+    let adressControl = new RegExp('^[a-zéèìïã(A-Z0-9\\s+)?]+$')
     let adressTest = adressControl.test(formInput.value);
     let errorMessage = formInput.nextElementSibling;
 
     if (adressTest == false){
+        submitForm.setAttribute('disabled', 'disabled');
         errorMessage.innerHTML = 'Champ invalide : caractères spéciaux interdits';
+        
     }
     else{
         errorMessage.innerHTML = " ";
+        submitForm.removeAttribute('disabled', 'disabled');
     }
 }
 
@@ -260,9 +315,11 @@ function mailCheck(formInput) {
 
     if (mailTest == false){
         errorMessage.innerHTML = 'Champ invalide : format email requis';
+        submitForm.setAttribute('disabled', 'disabled');
     }
     else{
         errorMessage.innerHTML = " ";
+        submitForm.removeAttribute('disabled', 'disabled');
     }
 }
 
