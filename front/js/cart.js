@@ -251,9 +251,7 @@ async function postInformations(infos){
     .then(order => {
         console.log(order.orderId);
         window.location.href = `./confirmation.html?commande=${order.orderId}`;
-
     })
-    
 }
 
 // listen each change on differents inputs
@@ -273,9 +271,7 @@ email.addEventListener('change', function () {
     mailCheck(email);
 })
 
-// controle data with regex and choose the right message 
-
-
+// control data with regex and choose the right message 
 function nameCheck(formInput) {
 
     let nameControl = new RegExp('^[a-zéèìïã(A-Z\-\\s+)?]+$');
