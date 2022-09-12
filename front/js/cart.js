@@ -8,7 +8,7 @@
     bindQuantityButton();
     bindDeleteButton();
     total();
-    
+
 
 })()
 
@@ -29,24 +29,18 @@ async function getItem(local) {
     // for each products in the local storage //
     for (let i = 0; i < local.length; i++) {
 
-        let productId = local[i].reference;
-        console.log(local[i].quantite)
-
-
-        await fetch("http://localhost:3000/api/products/" + productId)
+        await fetch("http://localhost:3000/api/products/" + local[i].reference)
             .then(res => res.json())
-            .then(canape => {
-
-                console.log(canape)
-                item.innerHTML = item.innerHTML + `<article class="cart__item" data-id="${productId}" data-color="${local[i].couleur}">
+            .then(product => {
+                item.innerHTML = item.innerHTML + `<article class="cart__item" data-id="${local[i].reference}" data-color="${local[i].couleur}">
         <div class="cart__item__img">
-            <img src=${canape.imageUrl} alt=${canape.altTxt}>
+            <img src=${product.imageUrl} alt=${product.altTxt}>
         </div>
         <div class="cart__item__content">
             <div class="cart__item__content__description">
-                <h2>${canape.name}</h2>
+                <h2>${product.name}</h2>
                 <p>${local[i].couleur}</p>
-                <p> ${canape.price * local[i].quantite} € </p>
+                <p> ${product.price * local[i].quantite} € </p>
             </div>
             <div class="cart__item__content__settings">
                 <div class="cart__item__content__settings__quantity">
@@ -60,12 +54,9 @@ async function getItem(local) {
         </div>
     </article>`
 
+                // get each unit price in an array 
 
-                // get each unit price in an array { 'ProductId' : 1000 }
-                
-                productPriceArray.push({ 'price': canape.price, 'identifier': productId, 'color': local[i].couleur });
-
-
+                productPriceArray.push({ 'price': product.price, 'identifier': local[i].reference, 'color': local[i].couleur });
 
             })
             .catch(function (error) {
@@ -92,15 +83,25 @@ function total() {
     let total = 0;
     let totalQuant = 0;
     const local = getLocal();
-    
+
     for (i = 0; i < local.length; i++) {
         total = total + (productPriceArray[i].price * local[i].quantite);
         totalQuant += Number(local[i].quantite);
-        }
+    }
 
     // show quantity total and prices total if there is any changes on the page //
     totalPrice.textContent = total;
     totalQuantity.textContent = totalQuant;
+}
+
+
+// bind quantity change to quantityUpdate function 
+
+function bindQuantityButton() {
+    const quantityChange = document.querySelectorAll('.itemQuantity');
+    for (let clic of quantityChange) {
+        clic.addEventListener('change', quantityUpdate)
+    }
 }
 
 // get only price from productPriceArray
@@ -134,15 +135,6 @@ function quantityUpdate(event) {
     }
 }
 
-// bind quantity change to quantityUpdate function 
-
-function bindQuantityButton() {
-    const quantityChange = document.querySelectorAll('.itemQuantity');
-    for (let clic of quantityChange) {
-        clic.addEventListener('change', quantityUpdate)
-    }
-}
-
 // bind delete click to deleteIt function
 
 function bindDeleteButton() {
@@ -160,51 +152,55 @@ function deleteIt(event) {
     let deleteProduct = event.target.closest('article');
 
     // select the right item to delete
+
     const deleteId = deleteProduct.dataset.id;
     const deleteColor = deleteProduct.dataset.color;
+    local = local.filter((local) => local.reference !== deleteId || local.couleur !== deleteColor);
+    localStorage.setItem('product', JSON.stringify(local));
+    deleteProduct.remove();
 
-            local = local.filter((local) => local.reference !== deleteId || local.couleur !== deleteColor);
-            localStorage.setItem('product', JSON.stringify(local));
-            deleteProduct.remove();
+    // update list to get the right calculation
 
-            // update list to get the right calculation
-            productPriceArray = productPriceArray.filter((product) => product.identifier !== deleteId || product.color !== deleteColor)
-            console.log("delete", productPriceArray)
-            total();
+    productPriceArray = productPriceArray.filter((product) => product.identifier !== deleteId || product.color !== deleteColor)
+    console.log("delete", productPriceArray)
+    total();
 
-            // clear localStorage if all items are deleted
-            if (local.length == 0){
-                localStorage.clear();
-            }
-            
-        }
+    // clear localStorage if all items are deleted
 
-// get form informations from HTML 
+    if (local.length == 0) {
+        localStorage.clear();
+    }
+}
+
+// get form informations from HTML -------------------------------------------------------------------------------------------------------- 
 
 let form = document.querySelector('.cart__order__form');
 const submitForm = document.querySelector('#order');
 
 // Listen click on submit button
-function bindSubmitButton(){
+
+function bindSubmitButton() {
     submitForm.addEventListener('click', formInformations)
 }
 
 bindSubmitButton()
 
 // create an array of product-ID
+
 let products = [];
 console.log("id", products)
-function getIdFromLocal(){
+function getIdFromLocal() {
     let local = getLocal();
-    for(let product of local){
+    for (let product of local) {
         products.push(product.reference)
     }
 }
+
 getIdFromLocal()
 
 // create contact object from each input and save them into local Storage
-function formInformations(event) {
 
+function formInformations(event) {
 
     const contact = {
         firstName: form.firstName.value,
@@ -215,7 +211,7 @@ function formInformations(event) {
     }
 
     if (contact.firstName == "" || contact.lastName == "" || contact.address == "" || contact.city == "" || contact.email == "") {
-        
+
     }
     else {
         event.preventDefault();
@@ -231,30 +227,11 @@ function formInformations(event) {
         console.log("send", toSend)
 
         postInformations(toSend)
-        
     }
-
-}
-
-
-async function postInformations(infos){
-    console.log(JSON.stringify(infos))
-    await fetch("http://localhost:3000/api/products/order", {
-        method: "POST",
-        body: JSON.stringify(infos),
-        headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-                }
-    })
-    .then(res => res.json()) 
-    .then(order => {
-        console.log(order.orderId);
-        window.location.href = `./confirmation.html?commande=${order.orderId}`;
-    })
 }
 
 // listen each change on differents inputs
+
 firstName.addEventListener('change', function () {
     nameCheck(firstName);
 })
@@ -272,17 +249,18 @@ email.addEventListener('change', function () {
 })
 
 // control data with regex and choose the right message 
+
 function nameCheck(formInput) {
 
     let nameControl = new RegExp('^[a-zéèìïã(A-Z\-\\s+)?]+$');
     let nameTest = nameControl.test(formInput.value);
     let errorMessage = formInput.nextElementSibling;
 
-    if (nameTest == false){
+    if (nameTest == false) {
         errorMessage.innerHTML = 'Champ invalide : caractères spéciaux et chiffres interdits';
         submitForm.setAttribute('disabled', 'disabled');
     }
-    else{
+    else {
         errorMessage.innerHTML = " ";
         submitForm.removeAttribute('disabled', 'disabled');
     }
@@ -293,12 +271,12 @@ function adressCheck(formInput) {
     let adressTest = adressControl.test(formInput.value);
     let errorMessage = formInput.nextElementSibling;
 
-    if (adressTest == false){
+    if (adressTest == false) {
         submitForm.setAttribute('disabled', 'disabled');
         errorMessage.innerHTML = 'Champ invalide : caractères spéciaux interdits';
-        
+
     }
-    else{
+    else {
         errorMessage.innerHTML = " ";
         submitForm.removeAttribute('disabled', 'disabled');
     }
@@ -309,16 +287,34 @@ function mailCheck(formInput) {
     let mailTest = mailControl.test(formInput.value);
     let errorMessage = formInput.nextElementSibling;
 
-    if (mailTest == false){
+    if (mailTest == false) {
         errorMessage.innerHTML = 'Champ invalide : format email requis';
         submitForm.setAttribute('disabled', 'disabled');
     }
-    else{
+    else {
         errorMessage.innerHTML = " ";
         submitForm.removeAttribute('disabled', 'disabled');
     }
 }
 
+// post command finales informations on confirmation page ----------------------------------------------------------------------------
+
+async function postInformations(infos) {
+    console.log(JSON.stringify(infos))
+    await fetch("http://localhost:3000/api/products/order", {
+        method: "POST",
+        body: JSON.stringify(infos),
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+        }
+    })
+        .then(res => res.json())
+        .then(order => {
+            console.log(order.orderId);
+            window.location.href = `./confirmation.html?commande=${order.orderId}`;
+        })
+}
 
 
 

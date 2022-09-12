@@ -1,16 +1,17 @@
 // finales functions returns on Kanap
 
-(async function(){
+async function finalProduct(){
     const productId = getProductId()
     console.log(productId)
     const productInfos = await getProductInfos(productId)
     console.log(productInfos)
     productPublication(productInfos)
     saveItems(productInfos)
+}
 
-})()
+finalProduct()
 
-// get Id URL from welcome page
+// get Id URL from welcome page to complete product page -----------------------------------------------------------------------------------
 
 function getProductId(){
     return new URL(location.href).searchParams.get("id")
@@ -21,63 +22,70 @@ function getProductId(){
 function getProductInfos(productId){
     return fetch(`http://localhost:3000/api/products/${productId}`)
     .then(res => res.json())
-    .then(canapes => canapes)
+    .then(products => products)
     .catch(function(error){
         console.log('problème avec fetch :' + error.message);
     })}
 
 // include colors choices according to colors array length
 
-function colorChoice (productInfos){
-    for (let i = 0; i < productInfos.colors.length ; i++){
+function colorChoice (product){
+    for (let i = 0; i < product.colors.length ; i++){
         const colorOption = document.createElement('option');
         const optionValue = document.querySelector('#colors').appendChild(colorOption);
-        colorOption.setAttribute('value', productInfos.colors[i]);
-        colorOption.textContent = productInfos.colors[i];   
+        colorOption.setAttribute('value', product.colors[i]);
+        colorOption.textContent = product.colors[i];   
 }
 }
 
 // complete HTML with corresponding informations
 
-function productPublication(productInfos){
+function productPublication(product){
     const img = document.createElement('img');
     const item_img = document.querySelector('.item__img').appendChild(img);
-    img.setAttribute('src', productInfos.imageUrl);
-    img.setAttribute('alt', productInfos.altTxt);
+    img.setAttribute('src', product.imageUrl);
+    img.setAttribute('alt', product.altTxt);
 
     const title = document.querySelector('#title');
-    title.textContent = productInfos.name;
+    title.textContent = product.name;
 
     const price = document.querySelector('#price');
-    price.textContent = productInfos.price;
+    price.textContent = product.price;
 
     const description = document.querySelector('#description');
-    description.textContent = productInfos.description;
+    description.textContent = product.description;
 
-    colorChoice(productInfos);
+    colorChoice(product);
     
     }
 
+
+// save data into local storage to complete cart page ---------------------------------------------------------------------------------------
+
+function saveBasket(storage){
+    localStorage.setItem('product', JSON.stringify(storage));
+}
+
 // select options, save them into the finale object and put them into local storage  
 
-function saveItems(productInfos){
+function saveItems(product){
     
+    // listen click on add button 
     const valideButton = document.querySelector('#addToCart').addEventListener('click', function(event){
         event.preventDefault();
+
+        // select color and quantity
         const colorSelect = document.querySelector('#colors');
         const colorSave = colorSelect.value;
     
         const quantitySelect = document.querySelector('#quantity');
         const quantitySave = quantitySelect.value;
 
+        // save color and quantity into itemsObject
         let itemsObject = {
-            reference : productInfos._id,
+            reference : product._id,
             quantite : Number(quantitySave),
             couleur : colorSave,
-        }
-
-        function saveBasket(storage){
-            localStorage.setItem('product', JSON.stringify(storage));
         }
 
         let storage = JSON.parse(localStorage.getItem('product'));
