@@ -3,12 +3,11 @@
 (async function () {
 
     const local = await getLocal();
-    console.log("local", local)
+    console.log("localstorage", local)
     await getItem(local);
     bindQuantityButton();
     bindDeleteButton();
     total();
-
 
 })()
 
@@ -69,8 +68,8 @@ async function getItem(local) {
 
 // array of objects 'price' matching 'identifier'
 
-var productPriceArray = [];
-console.log(productPriceArray)
+let productPriceArray = [];
+console.log('productPriceArray:', productPriceArray)
 
 
 // get total quantity and prices before order //
@@ -131,6 +130,7 @@ function quantityUpdate(event) {
             newPrice[0].textContent = (local[i].quantite * getPriceFromProductPriceArray(local[i].reference)) + " €";
             localStorage.setItem('product', JSON.stringify(local));
             total();
+            console.log('productPriceArray', productPriceArray)
         }
     }
 }
@@ -162,7 +162,6 @@ function deleteIt(event) {
     // update list to get the right calculation
 
     productPriceArray = productPriceArray.filter((product) => product.identifier !== deleteId || product.color !== deleteColor)
-    console.log("delete", productPriceArray)
     total();
 
     // clear localStorage if all items are deleted
@@ -224,9 +223,9 @@ function formInformations(event) {
             contact,
             products
         };
-        console.log("send", toSend)
 
         postInformations(toSend)
+        localStorage.clear()
     }
 }
 
@@ -311,7 +310,6 @@ async function postInformations(infos) {
     })
         .then(res => res.json())
         .then(order => {
-            console.log(order.orderId);
             window.location.href = `./confirmation.html?commande=${order.orderId}`;
         })
 }

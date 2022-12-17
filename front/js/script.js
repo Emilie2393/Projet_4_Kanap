@@ -8,7 +8,6 @@ async function finalProducts() {
     // products get API list of products
 
     const products = await getProducts()
-
     for (let product of products) {
         publishProducts(product)
     }
